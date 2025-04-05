@@ -8,6 +8,13 @@ def parse_txt_to_tree(lines):
         if not line.strip():
             # 跳过空行
             continue
+        # 检测是否是注释行
+        if line.strip().startswith("///"):
+            # 将注释行存储到当前栈顶节点的注释字段
+            if stack:
+                stack[-1].setdefault("comments", []).append(line.strip()[3:].strip())
+            continue
+
         # 计算当前行的缩进级别
         indent = len(line) - len(line.lstrip())
         # 创建一个节点，包含文本、缩进级别和子节点列表
@@ -40,6 +47,10 @@ def render_ascii_tree(nodes, prefix=""):
         connector = "└── " if i == last_index else "├── "
         # 添加当前节点的文本到行列表
         lines.append(prefix + connector + node["text"])
+        # 如果节点有注释，添加注释行
+        if "comments" in node:
+            for comment in node["comments"]:
+                lines.append(prefix + f"{comment}")
         # 为子节点生成新的前缀
         child_prefix = prefix + ("    " if i == last_index else "│   ")
         # 递归处理子节点，并将结果添加到行列表
